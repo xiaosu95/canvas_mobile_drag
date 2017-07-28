@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <script type="text/javascript" src="https://cdn.staticfile.org/touchjs/0.2.14/touch.min.js"></script>
+  <script src="./js/index.js"></script>
+  <link rel="stylesheet" href="./css/style.css">
+  <script type="text/javascript">
+      if(/Android (\d+\.\d+)/.test(navigator.userAgent)){
+          var version = parseFloat(RegExp.$1);
+          if(version>2.3){
+              var phoneScale = parseInt(window.screen.width)/750;
+              document.write('<meta name="viewport" content="width=750, minimum-scale = '+ phoneScale +', maximum-scale = '+ phoneScale +', target-densitydpi=device-dpi">');
+          }else{
+              document.write('<meta name="viewport" content="width=750, target-densitydpi=device-dpi">');
+          }
+      }else{
+          document.write('<meta name="viewport" content="width=750, user-scalable=no, target-densitydpi=device-dpi">');
+      }
+  </script>
+  <title>dray</title>
+  <style media="screen">
+    * {margin: 0; padding: 0}
+    #picBox {
+      width: 100%;
+      height: 600px;
+      position: fixed;
+      top: 0;
+    }
+    section {
+      padding-top: 600px;
+    }
+    .set {
+      font: 36px/50px "";
+      margin-top: 20px;
+    }
+    button {
+      font: 36px/50px "";
+      margin-bottom: 10px;
+    }
+    .photoInfo {
+      width: 100%;
+      font: 24px/50px "";
+    }
+    .outputPic {
+      display: block;
+    }
+    .event {
+      font: 20px/40px "";
+      color: #f00;
+    }
+
+  </style>
+</head>
+<body>
+  <div id="picBox">
+    <img src="http://img.kumi.cn/photo/75/06/16/7506167878647fe8_610x455.jpg?1225" alt="" crossOrigin="anonymous">
+  </div>
+  <section>
+    <span>功能：支持多张图片多种模式编辑，图片四角除了一个删除，其余拖拽可缩放旋转；图片支持手势缩放旋转</span>
+    <span class="event">当前操作事件：无操作</span>
+    <div class="set">
+      <h3>更改背景：</h3>
+      <button class="changeBg">添加/移除背景</button>
+      <button class="bgColor">更改背景色</button>
+    </div>
+    <div class="set">
+      <h3>添加图片：</h3>
+      <p>
+        <button class="addFullPic">添加一张满屏的图片</button>
+        <button class="addAutoPic">添加一张自适应的图片</button>
+        <button class="addFixedPic">添加一张200px的图片</button>
+        <button class="addEnablePic">添加一张禁止编辑的图片</button>
+      </p>
+      <label style="border: 1px #888 solid;">
+        <input type="file" class="file" style="display: none;">
+        添加本地图片
+      </label>
+    </div>
+    <div class="set">
+      <h3>获取图片并改变层级：</h3>
+      <button class="changeHierarchy">获取最底层的图片并提升到最高</button>
+    </div>
+    <div class="set">
+      <h3>更改编辑模式：(<span class="nowModel">Cascade模式</span>)</h3>
+      <button class="CascadeModel">Cascade模式</button>
+      <button class="autoHierarchyModel">autoHierarchy模式</button>
+    </div>
+    <div class="set">
+      <h3>更改画布宽高：</h3>
+      <button class="changeWH1">500*400</button>
+      <button class="changeWH2">复原</button>
+    </div>
+    <div class="set">
+      <h3>清空画布：</h3>
+      <button class="clearCanvas">清空</button>
+    </div>
+    <div class="set">
+      <h3>更改选中图片属性：</h3>
+      <button class="getPhotoInfo">获取当前选中图片的位置信息</button>
+      <p><input type="text" class="photoInfo"></p>
+      <button class="rotate">旋转选中图片</button>
+      <button class="enlarge">放大选中图片</button>
+      <button class="narrow">缩小选中图片</button>
+      <button class="changeUrl">更改选中图片的url</button>
+      <button class="autoScale">重置选中图片</button>
+      <button class="deletePic">删除选中图片</button>
+    </div>
+    <div class="set">
+      <h3>输出图片：</h3>
+      <button class="outputmodel1">输出0.5倍图片</button>
+      <button class="outputmodel2">输出1倍图片</button>
+      <button class="outputmodel3">输出2倍图片</button>
+    </div>
+    <img src="" alt="" class="outputPic">
+  </section>
+</body>
+<script type="text/javascript" src="http://libs.baidu.com/jquery/1.9.0/jquery.min.js"></script>
+<script>
+window.onload = function () {
+  var canvasBox = document.querySelector('#picBox');
+  var canvas = new _Canvas({
+    box: canvasBox,                  // 容器
+    bgColor: '#000',                // 背景色
+    bgPhoto: 'none',                // 背景图
+    photoModel: 'adaption',        // 载入图片模式(设置后添加图片时默认为当前设置模式)
+    model: 'Cascade'                // 编辑模式
+  })
+  var timer;
+  canvas.init({
+    dragEvent: function (e1, e2) {
+      clearTimeout(timer);
+      $('.event').text('当前操作事件：正在拖拽');
+      timer = setTimeout(function () {
+        $('.event').text('当前操作事件：无操作');
+      }, 10)
+    },
+    zoomEvent: function (e1, e2) {
+      clearTimeout(timer);
+      $('.event').text('当前操作事件：正在缩放');
+      timer = setTimeout(function () {
+        $('.event').text('当前操作事件：无操作');
+      }, 10)
+    },
+    rotateEvent: function (e1, e2) {
+      clearTimeout(timer);
+      $('.event').text('当前操作事件：正在旋转');
+      timer = setTimeout(function () {
+        $('.event').text('当前操作事件：无操作');
+      }, 10)
+    },
+    callback: function () {
+      console.log('图片初始化完成...')
+    }
+  });
+  // 添加或移除背景图
+  var changeBgFlag = false;
+  $('.changeBg').click(function () {
+    if (!changeBgFlag) {
+      canvas.changeBg({
+        photo: 'http://weixinad.tuyaji.cn/ad1498705875647-467.JPEG-mini'
+      })
+    } else {
+      canvas.changeBg({
+        photo: 'none'
+      })
+    }
+    changeBgFlag = !changeBgFlag;
+  })
+  // 修改背景色
+  $('.bgColor').click(function () {
+    var color = '#' + parseInt(Math.random() * 10) + parseInt(Math.random() * 10) + parseInt(Math.random() * 10)
+    canvas.changeBg({
+      photo: 'none',
+      color: color
+    })
+  })
+  // 添加一张满屏的图片
+  $('.addFullPic').click(function () {
+    canvas.addPhoto({
+      url: 'http://bpic.588ku.com/element_origin_min_pic/00/05/48/13568f47d05628a.jpg',
+      model: 'covered',
+      callback: function () {
+        console.log('成功加一张满屏的图片')
+      }
+    })
+  })
+  // 添加一张自适应的图片
+  $('.addAutoPic').click(function () {
+    canvas.addPhoto({
+      url: 'http://img5.imgtn.bdimg.com/it/u=1140109164,298409759&fm=26&gp=0.jpg',
+      model: 'adaption',
+      callback: function () {
+        console.log('成功添加一张自适应的图片')
+      }
+    })
+  })
+  // 添加一张自适应的图片
+  $('.addFixedPic').click(function () {
+    canvas.addPhoto({
+      url: 'http://bpic.588ku.com/element_origin_min_pic/00/05/48/13568f47d05628a.jpg',
+      model: 200,
+      callback: function () {
+        console.log('成功添加一张自适应的图片')
+      }
+    })
+  })
+  // 添加一张禁止编辑的图片
+  $('.addEnablePic').click(function () {
+    canvas.addPhoto({
+      url: 'http://bpic.588ku.com/element_origin_min_pic/00/05/48/13568f47d05628a.jpg',
+      model: 200,
+      enable: true,
+      callback: function () {
+        console.log('成功添加一张禁止编辑的图片')
+      }
+    })
+  })
+  // 添加本地图片
+  $('.file').change(function () {
+    canvas.addPhoto({
+      url: getUrl(this.files[0]),
+      model: 200,
+      callback: function () {
+        console.log('成功添加本地图片')
+      }
+    })
+  })
+
+
+
+  // 获取最底层的图片并提升到最高
+  $('.changeHierarchy').click(function () {
+    canvas.photos[0].changeInfo({
+      hierarchy: 1000,
+      callback: function () {
+        console.log('成功获取最底层的图片并提升到最高')
+      }
+    })
+  })
+
+  // Cascade模式<
+  $('.CascadeModel').click(function () {
+    canvas.changeParams({
+      model: 'Cascade'
+    })
+    $('.nowModel').text('Cascade模式')
+    console.log('成功切换到Cascade模式')
+  })
+  // autoHierarchy模式
+  $('.autoHierarchyModel').click(function () {
+    canvas.changeParams({
+      model: 'autoHierarchy'
+    })
+    $('.nowModel').text('autoHierarchy模式')
+    console.log('成功切换autoHierarchy模式')
+  })
+
+  // 获取当前图片信息
+  $('.getPhotoInfo').click(function () {
+    var nowPhoto = canvas.getNowPhoto();
+    if (!nowPhoto) {
+      alert('未选中任何图片');
+      return;
+    } else {
+      var nowPhotoInfo = nowPhoto.getPhotoInfo();
+      $('.photoInfo').val(JSON.stringify(nowPhotoInfo))
+    }
+  })
+
+  // 旋转
+  $('.rotate').click(function () {
+    var nowPhoto = canvas.getNowPhoto();
+    if (!nowPhoto) {
+      alert('未选中任何图片');
+      return;
+    } else {
+      var nowPhotoInfo = nowPhoto.getPhotoInfo();
+      nowPhoto.changeInfo({
+        rotate: nowPhotoInfo.rotate + 90,
+        callback: function () {
+          console.log('成功旋转')
+        }
+      })
+    }
+  })
+  // 放大
+  $('.enlarge').click(function () {
+    var nowPhoto = canvas.getNowPhoto();
+    if (!nowPhoto) {
+      alert('未选中任何图片');
+      return;
+    } else {
+      var nowPhotoInfo = nowPhoto.getPhotoInfo();
+      nowPhoto.changeInfo({
+        scale: nowPhotoInfo.scale * 1.1,
+        callback: function () {
+          console.log('成功放大')
+        }
+      })
+    }
+  })
+  // 缩小
+  $('.narrow').click(function () {
+    var nowPhoto = canvas.getNowPhoto();
+    if (!nowPhoto) {
+      alert('未选中任何图片');
+      return;
+    } else {
+      var nowPhotoInfo = nowPhoto.getPhotoInfo();
+      nowPhoto.changeInfo({
+        scale: nowPhotoInfo.scale / 1.1,
+        callback: function () {
+          console.log('成功缩小')
+        }
+      })
+    }
+  })
+  // 更换url
+  $('.changeUrl').click(function () {
+    var nowPhoto = canvas.getNowPhoto();
+    if (!nowPhoto) {
+      alert('未选中任何图片');
+      return;
+    } else {
+      var nowPhotoInfo = nowPhoto.getPhotoInfo();
+      nowPhoto.changeInfo({
+        img: 'http://img2.imgtn.bdimg.com/it/u=2798043390,298954610&fm=26&gp=0.jpg',
+        callback: function () {
+          console.log('成功更换url')
+        }
+      })
+    }
+  })
+
+  // 重置
+  $('.autoScale').click(function () {
+    var nowPhoto = canvas.getNowPhoto();
+    if (!nowPhoto) {
+      alert('未选中任何图片');
+      return;
+    } else {
+      var nowPhotoInfo = nowPhoto.getPhotoInfo();
+      nowPhoto.init(function () {
+        console.log('成功重置')
+      })
+    }
+  })
+  // 删除图片
+  $('.deletePic').click(function () {
+    var nowPhoto = canvas.getNowPhoto();
+    if (!nowPhoto) {
+      alert('未选中任何图片');
+      return;
+    } else {
+      var nowPhotoInfo = nowPhoto.getPhotoInfo();
+      nowPhoto._delete();
+      console.log('成功重置')
+    }
+  })
+
+
+  // 更改画布宽高
+  $('.changeWH1').click(function () {
+    canvas.changeParams({
+      width: 500,
+      height: 400
+    })
+  })
+  // 复原
+  $('.changeWH2').click(function () {
+    canvas.changeParams({
+      width: 750,
+      height: 600
+    })
+  })
+
+  // 清空画布
+  $('.clearCanvas').click(function () {
+    canvas.clearCanvas();
+  })
+
+  // 输出0.5倍图
+  $('.outputmodel1').click(function () {
+    canvas.toDataURL({
+      width: 375,
+      height: 300,
+      callback: function (url) {
+        $('.outputPic').attr('src', url);
+        console.log('成功输出0.5倍图')
+      }
+    })
+  })
+
+  // 输出1倍png图
+  $('.outputmodel2').click(function () {
+    canvas.toDataURL({
+      width: 750,
+      height: 600,
+      type: 'image/png',
+      callback: function (url) {
+        $('.outputPic').attr('src', url);
+        console.log('成功输出1倍png图')
+      }
+    })
+  })
+  // 输出2倍jpg图
+  $('.outputmodel3').click(function () {
+    canvas.toDataURL({
+      width: 1500,
+      height: 1200,
+      type: 'image/jpeg',
+      callback: function (url) {
+        $('.outputPic').attr('src', url);
+        console.log('成功输出2倍jpg图')
+      }
+    })
+  })
+
+  function getUrl (file) {
+    var url = null;
+    if (window.createObjectURL !== undefined) {
+      url = window.createObjectURL(file);
+    } else if (window.URL !== undefined) {
+      url = window.URL.createObjectURL(file);
+    } else if (window.webkitURL !== undefined) {
+      url = window.webkitURL.createObjectURL(file);
+    }
+    return url
+  }
+}
+</script>
+</html>
