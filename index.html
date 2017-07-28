@@ -62,7 +62,7 @@
     $('.changeBg').click(function () {
       if (!changeBgFlag) {
         canvas.changeBg({
-          photo: 'http://weixinad.tuyaji.cn/ad1498705875647-467.JPEG-mini'
+          photo: './img/pic2.jpg'
         })
       } else {
         canvas.changeBg({
@@ -82,7 +82,7 @@
     // 添加一张满屏的图片
     $('.addFullPic').click(function () {
       canvas.addPhoto({
-        url: 'http://bpic.588ku.com/element_origin_min_pic/00/05/48/13568f47d05628a.jpg',
+        url: './img/pic3.jpg',
         model: 'covered',
         callback: function () {
           console.log('成功加一张满屏的图片')
@@ -92,27 +92,27 @@
     // 添加一张自适应的图片
     $('.addAutoPic').click(function () {
       canvas.addPhoto({
-        url: 'http://img5.imgtn.bdimg.com/it/u=1140109164,298409759&fm=26&gp=0.jpg',
+        url: './img/pic4.jpg',
         model: 'adaption',
         callback: function () {
           console.log('成功添加一张自适应的图片')
         }
       })
     })
-    // 添加一张自适应的图片
+    // 添加一张200px的图片
     $('.addFixedPic').click(function () {
       canvas.addPhoto({
-        url: 'http://bpic.588ku.com/element_origin_min_pic/00/05/48/13568f47d05628a.jpg',
+        url: './img/pic5.jpg',
         model: 200,
         callback: function () {
-          console.log('成功添加一张自适应的图片')
+          console.log('成功添加200px的图片')
         }
       })
     })
     // 添加一张禁止编辑的图片
     $('.addEnablePic').click(function () {
       canvas.addPhoto({
-        url: 'http://bpic.588ku.com/element_origin_min_pic/00/05/48/13568f47d05628a.jpg',
+        url: './img/pic6.jpg',
         model: 200,
         enable: true,
         callback: function () {
@@ -229,7 +229,7 @@
       } else {
         var nowPhotoInfo = nowPhoto.getPhotoInfo();
         nowPhoto.changeInfo({
-          img: 'http://img2.imgtn.bdimg.com/it/u=2798043390,298954610&fm=26&gp=0.jpg',
+          img: './img/pic7.jpg',
           callback: function () {
             console.log('成功更换url')
           }
@@ -370,7 +370,7 @@
 </head>
 <body>
   <div id="picBox">
-    <img src="http://img.kumi.cn/photo/75/06/16/7506167878647fe8_610x455.jpg?1225" alt="" crossOrigin="anonymous">
+    <img src="./img/pic1.jpg" alt="" crossOrigin="anonymous">
   </div>
   <section>
     <span>功能：支持多张图片多种模式编辑，图片四角除了一个删除，其余拖拽可缩放旋转；图片支持手势缩放旋转</span>
