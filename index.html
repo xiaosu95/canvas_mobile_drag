@@ -19,6 +19,322 @@
           document.write('<meta name="viewport" content="width=750, user-scalable=no, target-densitydpi=device-dpi">');
       }
   </script>
+  <script type="text/javascript" src="http://libs.baidu.com/jquery/1.9.0/jquery.min.js"></script>
+  <script type="text/javascript">
+
+  window.onload = function () {
+    var canvasBox = document.querySelector('#picBox');
+    var canvas = new _Canvas({
+      box: canvasBox,                  // 容器
+      bgColor: '#000',                // 背景色
+      bgPhoto: 'none',                // 背景图
+      photoModel: 'adaption',        // 载入图片模式(设置后添加图片时默认为当前设置模式)
+      model: 'Cascade'                // 编辑模式
+    })
+    var timer;
+    canvas.init({
+      dragEvent: function (e1, e2) {
+        clearTimeout(timer);
+        $('.event').text('当前操作事件：正在拖拽');
+        timer = setTimeout(function () {
+          $('.event').text('当前操作事件：无操作');
+        }, 10)
+      },
+      zoomEvent: function (e1, e2) {
+        clearTimeout(timer);
+        $('.event').text('当前操作事件：正在缩放');
+        timer = setTimeout(function () {
+          $('.event').text('当前操作事件：无操作');
+        }, 10)
+      },
+      rotateEvent: function (e1, e2) {
+        clearTimeout(timer);
+        $('.event').text('当前操作事件：正在旋转');
+        timer = setTimeout(function () {
+          $('.event').text('当前操作事件：无操作');
+        }, 10)
+      },
+      callback: function () {
+        console.log('图片初始化完成...')
+      }
+    });
+    // 添加或移除背景图
+    var changeBgFlag = false;
+    $('.changeBg').click(function () {
+      if (!changeBgFlag) {
+        canvas.changeBg({
+          photo: 'http://weixinad.tuyaji.cn/ad1498705875647-467.JPEG-mini'
+        })
+      } else {
+        canvas.changeBg({
+          photo: 'none'
+        })
+      }
+      changeBgFlag = !changeBgFlag;
+    })
+    // 修改背景色
+    $('.bgColor').click(function () {
+      var color = '#' + parseInt(Math.random() * 10) + parseInt(Math.random() * 10) + parseInt(Math.random() * 10)
+      canvas.changeBg({
+        photo: 'none',
+        color: color
+      })
+    })
+    // 添加一张满屏的图片
+    $('.addFullPic').click(function () {
+      canvas.addPhoto({
+        url: 'http://bpic.588ku.com/element_origin_min_pic/00/05/48/13568f47d05628a.jpg',
+        model: 'covered',
+        callback: function () {
+          console.log('成功加一张满屏的图片')
+        }
+      })
+    })
+    // 添加一张自适应的图片
+    $('.addAutoPic').click(function () {
+      canvas.addPhoto({
+        url: 'http://img5.imgtn.bdimg.com/it/u=1140109164,298409759&fm=26&gp=0.jpg',
+        model: 'adaption',
+        callback: function () {
+          console.log('成功添加一张自适应的图片')
+        }
+      })
+    })
+    // 添加一张自适应的图片
+    $('.addFixedPic').click(function () {
+      canvas.addPhoto({
+        url: 'http://bpic.588ku.com/element_origin_min_pic/00/05/48/13568f47d05628a.jpg',
+        model: 200,
+        callback: function () {
+          console.log('成功添加一张自适应的图片')
+        }
+      })
+    })
+    // 添加一张禁止编辑的图片
+    $('.addEnablePic').click(function () {
+      canvas.addPhoto({
+        url: 'http://bpic.588ku.com/element_origin_min_pic/00/05/48/13568f47d05628a.jpg',
+        model: 200,
+        enable: true,
+        callback: function () {
+          console.log('成功添加一张禁止编辑的图片')
+        }
+      })
+    })
+    // 添加本地图片
+    $('.file').change(function () {
+      canvas.addPhoto({
+        url: getUrl(this.files[0]),
+        model: 200,
+        callback: function () {
+          console.log('成功添加本地图片')
+        }
+      })
+    })
+
+
+
+    // 获取最底层的图片并提升到最高
+    $('.changeHierarchy').click(function () {
+      canvas.photos[0].changeInfo({
+        hierarchy: 1000,
+        callback: function () {
+          console.log('成功获取最底层的图片并提升到最高')
+        }
+      })
+    })
+
+    // Cascade模式<
+    $('.CascadeModel').click(function () {
+      canvas.changeParams({
+        model: 'Cascade'
+      })
+      $('.nowModel').text('Cascade模式')
+      console.log('成功切换到Cascade模式')
+    })
+    // autoHierarchy模式
+    $('.autoHierarchyModel').click(function () {
+      canvas.changeParams({
+        model: 'autoHierarchy'
+      })
+      $('.nowModel').text('autoHierarchy模式')
+      console.log('成功切换autoHierarchy模式')
+    })
+
+    // 获取当前图片信息
+    $('.getPhotoInfo').click(function () {
+      var nowPhoto = canvas.getNowPhoto();
+      if (!nowPhoto) {
+        alert('未选中任何图片');
+        return;
+      } else {
+        var nowPhotoInfo = nowPhoto.getPhotoInfo();
+        $('.photoInfo').val(JSON.stringify(nowPhotoInfo))
+      }
+    })
+
+    // 旋转
+    $('.rotate').click(function () {
+      var nowPhoto = canvas.getNowPhoto();
+      if (!nowPhoto) {
+        alert('未选中任何图片');
+        return;
+      } else {
+        var nowPhotoInfo = nowPhoto.getPhotoInfo();
+        nowPhoto.changeInfo({
+          rotate: nowPhotoInfo.rotate + 90,
+          callback: function () {
+            console.log('成功旋转')
+          }
+        })
+      }
+    })
+    // 放大
+    $('.enlarge').click(function () {
+      var nowPhoto = canvas.getNowPhoto();
+      if (!nowPhoto) {
+        alert('未选中任何图片');
+        return;
+      } else {
+        var nowPhotoInfo = nowPhoto.getPhotoInfo();
+        nowPhoto.changeInfo({
+          scale: nowPhotoInfo.scale * 1.1,
+          callback: function () {
+            console.log('成功放大')
+          }
+        })
+      }
+    })
+    // 缩小
+    $('.narrow').click(function () {
+      var nowPhoto = canvas.getNowPhoto();
+      if (!nowPhoto) {
+        alert('未选中任何图片');
+        return;
+      } else {
+        var nowPhotoInfo = nowPhoto.getPhotoInfo();
+        nowPhoto.changeInfo({
+          scale: nowPhotoInfo.scale / 1.1,
+          callback: function () {
+            console.log('成功缩小')
+          }
+        })
+      }
+    })
+    // 更换url
+    $('.changeUrl').click(function () {
+      var nowPhoto = canvas.getNowPhoto();
+      if (!nowPhoto) {
+        alert('未选中任何图片');
+        return;
+      } else {
+        var nowPhotoInfo = nowPhoto.getPhotoInfo();
+        nowPhoto.changeInfo({
+          img: 'http://img2.imgtn.bdimg.com/it/u=2798043390,298954610&fm=26&gp=0.jpg',
+          callback: function () {
+            console.log('成功更换url')
+          }
+        })
+      }
+    })
+
+    // 重置
+    $('.autoScale').click(function () {
+      var nowPhoto = canvas.getNowPhoto();
+      if (!nowPhoto) {
+        alert('未选中任何图片');
+        return;
+      } else {
+        var nowPhotoInfo = nowPhoto.getPhotoInfo();
+        nowPhoto.init(function () {
+          console.log('成功重置')
+        })
+      }
+    })
+    // 删除图片
+    $('.deletePic').click(function () {
+      var nowPhoto = canvas.getNowPhoto();
+      if (!nowPhoto) {
+        alert('未选中任何图片');
+        return;
+      } else {
+        var nowPhotoInfo = nowPhoto.getPhotoInfo();
+        nowPhoto._delete();
+        console.log('成功重置')
+      }
+    })
+
+
+    // 更改画布宽高
+    $('.changeWH1').click(function () {
+      canvas.changeParams({
+        width: 500,
+        height: 400
+      })
+    })
+    // 复原
+    $('.changeWH2').click(function () {
+      canvas.changeParams({
+        width: 750,
+        height: 600
+      })
+    })
+
+    // 清空画布
+    $('.clearCanvas').click(function () {
+      canvas.clearCanvas();
+    })
+
+    // 输出0.5倍图
+    $('.outputmodel1').click(function () {
+      canvas.toDataURL({
+        width: 375,
+        height: 300,
+        callback: function (url) {
+          $('.outputPic').attr('src', url);
+          console.log('成功输出0.5倍图')
+        }
+      })
+    })
+
+    // 输出1倍png图
+    $('.outputmodel2').click(function () {
+      canvas.toDataURL({
+        width: 750,
+        height: 600,
+        type: 'image/png',
+        callback: function (url) {
+          $('.outputPic').attr('src', url);
+          console.log('成功输出1倍png图')
+        }
+      })
+    })
+    // 输出2倍jpg图
+    $('.outputmodel3').click(function () {
+      canvas.toDataURL({
+        width: 1500,
+        height: 1200,
+        type: 'image/jpeg',
+        callback: function (url) {
+          $('.outputPic').attr('src', url);
+          console.log('成功输出2倍jpg图')
+        }
+      })
+    })
+
+    function getUrl (file) {
+      var url = null;
+      if (window.createObjectURL !== undefined) {
+        url = window.createObjectURL(file);
+      } else if (window.URL !== undefined) {
+        url = window.URL.createObjectURL(file);
+      } else if (window.webkitURL !== undefined) {
+        url = window.webkitURL.createObjectURL(file);
+      }
+      return url
+    }
+  }
+  </script>
   <title>dray</title>
   <style media="screen">
     * {margin: 0; padding: 0}
@@ -116,320 +432,4 @@
     <img src="" alt="" class="outputPic">
   </section>
 </body>
-<script type="text/javascript" src="http://libs.baidu.com/jquery/1.9.0/jquery.min.js"></script>
-<script type="text/javascript">
-
-window.onload = function () {
-  var canvasBox = document.querySelector('#picBox');
-  var canvas = new _Canvas({
-    box: canvasBox,                  // 容器
-    bgColor: '#000',                // 背景色
-    bgPhoto: 'none',                // 背景图
-    photoModel: 'adaption',        // 载入图片模式(设置后添加图片时默认为当前设置模式)
-    model: 'Cascade'                // 编辑模式
-  })
-  var timer;
-  canvas.init({
-    dragEvent: function (e1, e2) {
-      clearTimeout(timer);
-      $('.event').text('当前操作事件：正在拖拽');
-      timer = setTimeout(function () {
-        $('.event').text('当前操作事件：无操作');
-      }, 10)
-    },
-    zoomEvent: function (e1, e2) {
-      clearTimeout(timer);
-      $('.event').text('当前操作事件：正在缩放');
-      timer = setTimeout(function () {
-        $('.event').text('当前操作事件：无操作');
-      }, 10)
-    },
-    rotateEvent: function (e1, e2) {
-      clearTimeout(timer);
-      $('.event').text('当前操作事件：正在旋转');
-      timer = setTimeout(function () {
-        $('.event').text('当前操作事件：无操作');
-      }, 10)
-    },
-    callback: function () {
-      console.log('图片初始化完成...')
-    }
-  });
-  // 添加或移除背景图
-  var changeBgFlag = false;
-  $('.changeBg').click(function () {
-    if (!changeBgFlag) {
-      canvas.changeBg({
-        photo: 'http://weixinad.tuyaji.cn/ad1498705875647-467.JPEG-mini'
-      })
-    } else {
-      canvas.changeBg({
-        photo: 'none'
-      })
-    }
-    changeBgFlag = !changeBgFlag;
-  })
-  // 修改背景色
-  $('.bgColor').click(function () {
-    var color = '#' + parseInt(Math.random() * 10) + parseInt(Math.random() * 10) + parseInt(Math.random() * 10)
-    canvas.changeBg({
-      photo: 'none',
-      color: color
-    })
-  })
-  // 添加一张满屏的图片
-  $('.addFullPic').click(function () {
-    canvas.addPhoto({
-      url: 'http://bpic.588ku.com/element_origin_min_pic/00/05/48/13568f47d05628a.jpg',
-      model: 'covered',
-      callback: function () {
-        console.log('成功加一张满屏的图片')
-      }
-    })
-  })
-  // 添加一张自适应的图片
-  $('.addAutoPic').click(function () {
-    canvas.addPhoto({
-      url: 'http://img5.imgtn.bdimg.com/it/u=1140109164,298409759&fm=26&gp=0.jpg',
-      model: 'adaption',
-      callback: function () {
-        console.log('成功添加一张自适应的图片')
-      }
-    })
-  })
-  // 添加一张自适应的图片
-  $('.addFixedPic').click(function () {
-    canvas.addPhoto({
-      url: 'http://bpic.588ku.com/element_origin_min_pic/00/05/48/13568f47d05628a.jpg',
-      model: 200,
-      callback: function () {
-        console.log('成功添加一张自适应的图片')
-      }
-    })
-  })
-  // 添加一张禁止编辑的图片
-  $('.addEnablePic').click(function () {
-    canvas.addPhoto({
-      url: 'http://bpic.588ku.com/element_origin_min_pic/00/05/48/13568f47d05628a.jpg',
-      model: 200,
-      enable: true,
-      callback: function () {
-        console.log('成功添加一张禁止编辑的图片')
-      }
-    })
-  })
-  // 添加本地图片
-  $('.file').change(function () {
-    canvas.addPhoto({
-      url: getUrl(this.files[0]),
-      model: 200,
-      callback: function () {
-        console.log('成功添加本地图片')
-      }
-    })
-  })
-
-
-
-  // 获取最底层的图片并提升到最高
-  $('.changeHierarchy').click(function () {
-    canvas.photos[0].changeInfo({
-      hierarchy: 1000,
-      callback: function () {
-        console.log('成功获取最底层的图片并提升到最高')
-      }
-    })
-  })
-
-  // Cascade模式<
-  $('.CascadeModel').click(function () {
-    canvas.changeParams({
-      model: 'Cascade'
-    })
-    $('.nowModel').text('Cascade模式')
-    console.log('成功切换到Cascade模式')
-  })
-  // autoHierarchy模式
-  $('.autoHierarchyModel').click(function () {
-    canvas.changeParams({
-      model: 'autoHierarchy'
-    })
-    $('.nowModel').text('autoHierarchy模式')
-    console.log('成功切换autoHierarchy模式')
-  })
-
-  // 获取当前图片信息
-  $('.getPhotoInfo').click(function () {
-    var nowPhoto = canvas.getNowPhoto();
-    if (!nowPhoto) {
-      alert('未选中任何图片');
-      return;
-    } else {
-      var nowPhotoInfo = nowPhoto.getPhotoInfo();
-      $('.photoInfo').val(JSON.stringify(nowPhotoInfo))
-    }
-  })
-
-  // 旋转
-  $('.rotate').click(function () {
-    var nowPhoto = canvas.getNowPhoto();
-    if (!nowPhoto) {
-      alert('未选中任何图片');
-      return;
-    } else {
-      var nowPhotoInfo = nowPhoto.getPhotoInfo();
-      nowPhoto.changeInfo({
-        rotate: nowPhotoInfo.rotate + 90,
-        callback: function () {
-          console.log('成功旋转')
-        }
-      })
-    }
-  })
-  // 放大
-  $('.enlarge').click(function () {
-    var nowPhoto = canvas.getNowPhoto();
-    if (!nowPhoto) {
-      alert('未选中任何图片');
-      return;
-    } else {
-      var nowPhotoInfo = nowPhoto.getPhotoInfo();
-      nowPhoto.changeInfo({
-        scale: nowPhotoInfo.scale * 1.1,
-        callback: function () {
-          console.log('成功放大')
-        }
-      })
-    }
-  })
-  // 缩小
-  $('.narrow').click(function () {
-    var nowPhoto = canvas.getNowPhoto();
-    if (!nowPhoto) {
-      alert('未选中任何图片');
-      return;
-    } else {
-      var nowPhotoInfo = nowPhoto.getPhotoInfo();
-      nowPhoto.changeInfo({
-        scale: nowPhotoInfo.scale / 1.1,
-        callback: function () {
-          console.log('成功缩小')
-        }
-      })
-    }
-  })
-  // 更换url
-  $('.changeUrl').click(function () {
-    var nowPhoto = canvas.getNowPhoto();
-    if (!nowPhoto) {
-      alert('未选中任何图片');
-      return;
-    } else {
-      var nowPhotoInfo = nowPhoto.getPhotoInfo();
-      nowPhoto.changeInfo({
-        img: 'http://img2.imgtn.bdimg.com/it/u=2798043390,298954610&fm=26&gp=0.jpg',
-        callback: function () {
-          console.log('成功更换url')
-        }
-      })
-    }
-  })
-
-  // 重置
-  $('.autoScale').click(function () {
-    var nowPhoto = canvas.getNowPhoto();
-    if (!nowPhoto) {
-      alert('未选中任何图片');
-      return;
-    } else {
-      var nowPhotoInfo = nowPhoto.getPhotoInfo();
-      nowPhoto.init(function () {
-        console.log('成功重置')
-      })
-    }
-  })
-  // 删除图片
-  $('.deletePic').click(function () {
-    var nowPhoto = canvas.getNowPhoto();
-    if (!nowPhoto) {
-      alert('未选中任何图片');
-      return;
-    } else {
-      var nowPhotoInfo = nowPhoto.getPhotoInfo();
-      nowPhoto._delete();
-      console.log('成功重置')
-    }
-  })
-
-
-  // 更改画布宽高
-  $('.changeWH1').click(function () {
-    canvas.changeParams({
-      width: 500,
-      height: 400
-    })
-  })
-  // 复原
-  $('.changeWH2').click(function () {
-    canvas.changeParams({
-      width: 750,
-      height: 600
-    })
-  })
-
-  // 清空画布
-  $('.clearCanvas').click(function () {
-    canvas.clearCanvas();
-  })
-
-  // 输出0.5倍图
-  $('.outputmodel1').click(function () {
-    canvas.toDataURL({
-      width: 375,
-      height: 300,
-      callback: function (url) {
-        $('.outputPic').attr('src', url);
-        console.log('成功输出0.5倍图')
-      }
-    })
-  })
-
-  // 输出1倍png图
-  $('.outputmodel2').click(function () {
-    canvas.toDataURL({
-      width: 750,
-      height: 600,
-      type: 'image/png',
-      callback: function (url) {
-        $('.outputPic').attr('src', url);
-        console.log('成功输出1倍png图')
-      }
-    })
-  })
-  // 输出2倍jpg图
-  $('.outputmodel3').click(function () {
-    canvas.toDataURL({
-      width: 1500,
-      height: 1200,
-      type: 'image/jpeg',
-      callback: function (url) {
-        $('.outputPic').attr('src', url);
-        console.log('成功输出2倍jpg图')
-      }
-    })
-  })
-
-  function getUrl (file) {
-    var url = null;
-    if (window.createObjectURL !== undefined) {
-      url = window.createObjectURL(file);
-    } else if (window.URL !== undefined) {
-      url = window.URL.createObjectURL(file);
-    } else if (window.webkitURL !== undefined) {
-      url = window.webkitURL.createObjectURL(file);
-    }
-    return url
-  }
-}
-</script>
 </html>
