@@ -100,7 +100,8 @@ $('.bgColor').click(function () {
 >* 清空画布
 
 * canvas画布的属性：
-**photos：**画布内所有图片对象
+
+**photos：** 画布内所有图片对象
 
 ------
 * Photo对象方法（画布内图片对象）
