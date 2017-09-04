@@ -256,11 +256,11 @@
 
     self.photos.sort(sortFun);
     self.photos.forEach(function (ele) {
-      rendering(self.ctx, ele);       // 渲染画布
       if (self.targetPhoto == ele) {
         self.targetPhoto.recalculate();
+        rendering(self.ctx, ele);       // 渲染画布
         self.targetPhoto.drawSet();
-      }
+      } else rendering(self.ctx, ele);       // 渲染画布
     })
   }
   Canvas.prototype.touchstart = function (e) {          // 触摸
@@ -299,8 +299,7 @@
         // 缩放
         this.targetPhoto.changeSize(x, y);
       } else {              // 移动模式
-        this.targetPhoto.x = x - this.disx;
-        this.targetPhoto.y = y - this.disy;
+        this.targetPhoto.move(x - this.disx, y - this.disy);
       }
       this.painting();
     }
@@ -365,6 +364,7 @@
       self.photos.push(photo);
       photo.init(function (photo) {               // 加载图片完成的回调并返回图片对象
         obj.callback && obj.callback(photo)
+        console.log(photo)
       });
     }
   }
@@ -482,6 +482,20 @@
     this.actualRadius = 0;      // 实际半径
     this.radius = 0;         // 图片的半径
     this.originalRadius = 0; // 夹角
+    this.hornLimit = {            // 图片的最大最小x,y坐标// 限制活动区域
+      minX: 0,
+      maxX: 0,
+      minY: 0,
+      maxY: 0
+    }
+    this.edgeLimit = {            // 图片在容器内触及边线时的x，y最小最大值
+      minX: -Infinity,
+      maxX: Infinity,
+      minY: -Infinity,
+      maxY: Infinity,
+      flag: false,
+      maxScale: Infinity
+    }
   }
   Photo.prototype.init = function (cb) {        // 初始化// 回调返回图片对象
     var self = this;
@@ -571,7 +585,7 @@
     this.radius = Math.sqrt(Math.pow(this.width, 2) + Math.pow(this.height, 2)) / 2;     // 半径
     this.originalRadius = Math.atan(this.height / this.width) * 180 / Math.PI;     // 中心点正半轴与四角的夹角（0-90）
     this.corners = {
-      bottomLeft: {                     // 分别为原始坐标x,y,与中心点正x轴的夹角
+      bottomLeft: {                     // 分别为原始坐标x,y,与中心点正x轴的夹角/即未旋转的
         x: this.coreX - this.width / 2,
         y: this.coreY + this.height / 2,
         angle: this.originalRadius + 180
@@ -594,14 +608,23 @@
     }
     this.sideLine();
   }
-  Photo.prototype.sideLine = function () {        // 获取图片四边的坐标
+  Photo.prototype.sideLine = function () {        // 获取图片四边的坐标ps：真正的坐标
     // 获取四角新的坐标运用公式为x1=x0+r*cos(ao*3.14/180)；
     //                        y1=y0-r*sin(ao*3.14/180)；//ao为与中心点正x轴的夹角（x0，y0）为中心坐标
+    this.edgeLimit.minX = -Infinity;
+    this.edgeLimit.maxX = Infinity;
+    this.edgeLimit.minY = -Infinity;
+    this.edgeLimit.maxY = Infinity;
     for (key in this.corners) {
       this.realCorners[key] = {
         x: this.coreX + Math.cos((this.corners[key].angle - this.rotate) / 180 * Math.PI) * this.radius,
         y: this.coreY - Math.sin((this.corners[key].angle - this.rotate) / 180 * Math.PI) * this.radius
       }
+      this.edgeLimit.minX = Math.max(-Math.cos((this.corners[key].angle - this.rotate) / 180 * Math.PI) * this.radius - this.width / 2, this.edgeLimit.minX);
+      this.edgeLimit.maxX = Math.min(this._canvas.width - Math.cos((this.corners[key].angle - this.rotate) / 180 * Math.PI) * this.radius - this.width / 2, this.edgeLimit.maxX);
+      this.edgeLimit.minY = Math.max(Math.sin((this.corners[key].angle - this.rotate) / 180 * Math.PI) * this.radius - this.height / 2, this.edgeLimit.minY);
+      this.edgeLimit.maxY = Math.min(this._canvas.height + Math.sin((this.corners[key].angle - this.rotate) / 180 * Math.PI) * this.radius - this.height / 2, this.edgeLimit.maxY);
+      this.edgeLimit.flag = true;
     };
     // 确定图片四条边的坐标
     this.oCoords.bottomLine = {
@@ -619,6 +642,14 @@
     this.oCoords.leftLine = {
       o: this.realCorners.topLeft,
       d: this.realCorners.bottomLeft
+    }
+    // 获取图片最大最小坐标
+    this.hornLimit.minX = Math.min(this.realCorners.bottomLeft.x, this.realCorners.bottomRight.x, this.realCorners.topRight.x, this.realCorners.topLeft.x);
+    this.hornLimit.minY = Math.min(this.realCorners.bottomLeft.y, this.realCorners.bottomRight.y, this.realCorners.topRight.y, this.realCorners.topLeft.y);
+    this.hornLimit.maxX = Math.max(this.realCorners.bottomLeft.x, this.realCorners.bottomRight.x, this.realCorners.topRight.x, this.realCorners.topLeft.x);
+    this.hornLimit.maxY = Math.max(this.realCorners.bottomLeft.y, this.realCorners.bottomRight.y, this.realCorners.topRight.y, this.realCorners.topLeft.y);
+    if (this.hornLimit.minX >=0 && this.hornLimit.minY >=0 && this.hornLimit.maxX <= this._canvas.width && this.hornLimit.maxY <= this._canvas.height) {
+      this.edgeLimit.maxScale = Math.min((this.edgeLimit.maxX - this.edgeLimit.minX + this.width) / this.actualWidth, (this.edgeLimit.maxY - this.edgeLimit.minY + this.height) / this.actualHeight)
     }
   }
   Photo.prototype.boundary = function (x, y) {          // 判断是否在范围内且enable=false
@@ -699,17 +730,35 @@
     this.obtainInfo();
   }
   Photo.prototype.obtainInfo = function () {        // 重新计算图片的宽高和x、y
+    if (this.edgeLimit.flag) {
+      if (this.hornLimit.minX < 0) this.x = this.edgeLimit.minX;
+      else if (this.hornLimit.maxX > this._canvas.width) this.x = this.edgeLimit.maxX;
+      else this.x = this.coreX - this.width / 2;
+      if (this.hornLimit.minY < 0) this.y = this.edgeLimit.minY;
+      else if (this.hornLimit.maxY > this._canvas.height) this.y = this.edgeLimit.maxY;
+      else this.y = this.coreY - this.height / 2;
+      if (this.scale > this.edgeLimit.maxScale) this.scale = this.edgeLimit.maxScale;
+    }
     this.width = this.scale * this.actualWidth;
     this.height = this.scale * this.actualHeight;
-    this.x = this.coreX - this.width / 2;
-    this.y = this.coreY - this.height / 2;
+  }
+  // 移动
+  Photo.prototype.move = function (x, y) {
+    // this.x = x;
+    // this.y = y;
+    if (x < this.edgeLimit.minX) this.x = this.edgeLimit.minX;
+    else if (x > this.edgeLimit.maxX) this.x = this.edgeLimit.maxX;
+    else this.x = x;
+    if (y < this.edgeLimit.minY) this.y = this.edgeLimit.minY;
+    else if (y > this.edgeLimit.maxY) this.y = this.edgeLimit.maxY;
+    else this.y = y;
   }
   Photo.prototype.changeRotate = function (x, y) {        // 旋转
     // 旋转0->-360
     this.rotate = Math.atan(((y - this.coreY) / (x - this.coreX))) * 180 / Math.PI;
     // 在中心点右侧区域的角度需要减去中心正轴与右上角的夹角；左侧区域需要减去中心正轴与右上角的夹角的补角
     this.rotate = x > this.coreX ? (this.rotate - this.originalRadius) : (this.rotate - (180 + this.originalRadius));
-    if (this.rotate > 0) this.rotate -= 360;      // 将0-45区间转化为((-315)-(-360))
+    if (this.rotate > 0) this.rotate -= 360;
     // 点击不同位置的设置点修正其角度差
     // 角度差为与右下角与中心点和该角产生的角度
     if (this.setSpot.type == 'topRight') this.rotate += this.originalRadius * 2;
