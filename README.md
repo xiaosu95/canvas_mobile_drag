@@ -7,8 +7,8 @@
 > * 插件操作模式支持手势放大、旋转；支持点击图片的四个角落拖拽放大或旋转或者。
 > * 支持照片exif自动矫正。许多手机用不同方向拍照时会导致图片在canvas中显示角度不正常。常规解决方法是引入exif.js。不过该js大小太大。所以我在这里直接将exif获取角度的部分提取出来，大大精简了代码量。
 > * 插件可输出你期望的分辨率图片，格式。
-## API
-* 开始使用
+
+## 开始使用
 ```javascript
 var canvasBox = document.querySelector('#picBox');
 var canvas = new _Canvas({
@@ -99,12 +99,12 @@ $('.bgColor').click(function () {
 **clearCanvas()**
 >* 清空画布
 
-* canvas画布的属性：
+## canvas画布的属性：
 
 **photos：** 画布内所有图片对象
 
 ------
-* Photo对象方法（画布内图片对象）
+## Photo对象方法（画布内图片对象）
 
 **init()**
 >* 重置图片大小和位置
