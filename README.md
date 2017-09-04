@@ -7,7 +7,7 @@
 > * 插件操作模式支持手势放大、旋转；支持点击图片的四个角落拖拽放大或旋转或者。
 > * 支持照片exif自动矫正。许多手机用不同方向拍照时会导致图片在canvas中显示角度不正常。常规解决方法是引入exif.js。不过该js大小太大。所以我在这里直接将exif获取角度的部分提取出来，大大精简了代码量。
 > * 插件可输出你期望的分辨率图片，格式。
-## <API:></API:>
+## API
 * 开始使用
 ```javascript
 var canvasBox = document.querySelector('#picBox');
@@ -25,13 +25,13 @@ var canvas = new _Canvas({
 ```javascript
 canvas.init({
   dragEvent: function (picArr, target) {        // 监听拖拽事件
-    console.log(当前操作事件：正在拖拽')
+    console.log('当前操作事件：正在拖拽')
   },
   zoomEvent: function (picArr, target) {        // 监听缩放事件
-    console.log(当前操作事件：正在缩放')
+    console.log('当前操作事件：正在缩放')
   },
   rotateEvent: function (picArr, target) {        // 监听旋转事件
-    console.log(当前操作事件：正在旋转')
+    console.log('当前操作事件：正在旋转')
   },
   callback: function () {
     console.log('图片初始化完成...')
