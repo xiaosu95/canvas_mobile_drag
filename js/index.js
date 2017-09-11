@@ -730,28 +730,21 @@
     this.obtainInfo();
   }
   Photo.prototype.obtainInfo = function () {        // 重新计算图片的宽高和x、y
-    if (this.edgeLimit.flag) {
-      if (this.hornLimit.minX < 0) this.x = this.edgeLimit.minX;
-      else if (this.hornLimit.maxX > this._canvas.width) this.x = this.edgeLimit.maxX;
-      else this.x = this.coreX - this.width / 2;
-      if (this.hornLimit.minY < 0) this.y = this.edgeLimit.minY;
-      else if (this.hornLimit.maxY > this._canvas.height) this.y = this.edgeLimit.maxY;
-      else this.y = this.coreY - this.height / 2;
-      if (this.scale > this.edgeLimit.maxScale) this.scale = this.edgeLimit.maxScale;
-    }
     this.width = this.scale * this.actualWidth;
     this.height = this.scale * this.actualHeight;
+    this.x = this.coreX - this.width / 2;
+    this.y = this.coreY - this.height / 2;
   }
   // 移动
   Photo.prototype.move = function (x, y) {
-    // this.x = x;
-    // this.y = y;
-    if (x < this.edgeLimit.minX) this.x = this.edgeLimit.minX;
-    else if (x > this.edgeLimit.maxX) this.x = this.edgeLimit.maxX;
-    else this.x = x;
-    if (y < this.edgeLimit.minY) this.y = this.edgeLimit.minY;
-    else if (y > this.edgeLimit.maxY) this.y = this.edgeLimit.maxY;
-    else this.y = y;
+    this.x = x;
+    this.y = y;
+    // if (x < this.edgeLimit.minX) this.x = this.edgeLimit.minX;
+    // else if (x > this.edgeLimit.maxX) this.x = this.edgeLimit.maxX;
+    // else this.x = x;
+    // if (y < this.edgeLimit.minY) this.y = this.edgeLimit.minY;
+    // else if (y > this.edgeLimit.maxY) this.y = this.edgeLimit.maxY;
+    // else this.y = y;
   }
   Photo.prototype.changeRotate = function (x, y) {        // 旋转
     // 旋转0->-360
