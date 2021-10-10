@@ -1,6 +1,6 @@
 # 欢迎使用 canvas_mobile_drag
 ------
-#### [点击查看demo（在移动端上查看）](https://www.suyuanli.ink/example/mobile_drag)
+#### [点击查看demo（在移动端上查看）](https://www.suyuanli.cn/example/mobile_drag)
 该插件是一款脱离jq的移动端图片编辑器。可以应用在移动端H5页面或者微信小程序中。
 
 > * 插件实现的功能为可页面内初始化载入图片、手动添加手机相册内的图片、或者添加服务器端的图片（服务器端需要开启允许图片跨域）。拥有多种的编辑模式。支持操作画布内的所有图片和单独设置某一种图片的状态或者位置等。
